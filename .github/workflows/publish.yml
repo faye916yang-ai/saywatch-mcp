@@ -1,0 +1,56 @@
+# Publishes saywatch-mcp to npm (Trusted Publishing, no token) and to the official MCP Registry.
+# Release: bump the version in package.json and server.json (both fields) and VERSION in server.mjs,
+# commit, then push a tag that matches: git tag v0.1.2 && git push origin main v0.1.2
+name: Publish
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # npm Trusted Publishing and MCP Registry login both use GitHub OIDC
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Use a recent npm (Trusted Publishing needs 11.5.1+)
+        run: npm install -g npm@latest
+
+      - name: Check versions match
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          SRV=$(node -p "require('./server.json').version")
+          SRVPKG=$(node -p "require('./server.json').packages[0].version")
+          CODE=$(sed -n 's/^const VERSION = "\(.*\)";/\1/p' server.mjs)
+          echo "package.json=$PKG server.json=$SRV/$SRVPKG server.mjs=$CODE ref=$GITHUB_REF_NAME"
+          [ "$PKG" = "$SRV" ] && [ "$PKG" = "$SRVPKG" ] && [ "$PKG" = "$CODE" ]
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then [ "$GITHUB_REF_NAME" = "v$PKG" ]; fi
+
+      - name: Smoke test
+        run: |
+          printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+            | node server.mjs --dir /tmp/saywatch | grep -q search_recordings
+
+      - name: Publish to npm
+        run: |
+          if npm view "saywatch-mcp@$(node -p "require('./package.json').version")" version >/dev/null 2>&1; then
+            echo "This version is already on npm, skipping."
+          else
+            npm publish
+          fi
+
+      - name: Publish to the MCP Registry
+        run: |
+          curl -sL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish || echo "Registry publish failed or version already exists; check the log."
