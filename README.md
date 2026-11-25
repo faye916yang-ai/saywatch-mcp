@@ -56,15 +56,14 @@ The export format is `ExportedRecording` (version 1) in the iOS app's `Phone/Fol
 
 ## Publishing (maintainers)
 
-Published on npm as `saywatch-mcp` (https://www.npmjs.com/package/saywatch-mcp); users run it with `npx -y saywatch-mcp`.
+Published on npm as `saywatch-mcp` (https://www.npmjs.com/package/saywatch-mcp) and on the official MCP Registry as `io.github.faye916yang-ai/saywatch-mcp`. Releases go out from GitHub Actions (`.github/workflows/publish.yml`) with npm Trusted Publishing, so no npm login or token is needed.
 
 1. Change `server.mjs`, test with `node server.mjs --dir <folder with recordings/>`.
-2. Bump `version` in `package.json` (0.1.1 → 0.1.2 …) and the two `version` fields in `server.json`; npm never accepts the same version twice.
-3. In this folder run `npm publish`. The npm account has 2FA on, so it opens the browser to confirm.
-4. Publish the listing to the official MCP Registry: `mcp-publisher login github`, then `mcp-publisher publish` (reads `server.json`).
-5. The registry takes a few minutes to show the new version; check with `npm view saywatch-mcp version`.
+2. Bump the version in four places, all equal: `package.json` `version`, `server.json` `version` and `packages[0].version`, and `VERSION` in `server.mjs`. npm never accepts the same version twice.
+3. Commit, then tag and push: `git tag v0.1.2 && git push origin main v0.1.2`.
+4. The workflow checks the versions, runs a smoke test, publishes to npm, then to the MCP Registry. Check the run under the repo's Actions tab, then `npm view saywatch-mcp version`.
 
-If the terminal says `npm: command not found`, npm lives in `~/.local/bin` (already added to PATH in `~/.zshrc`).
+Fallback (manual): on a computer whose npm account has the security key, run `npm login` and `npm publish`, then `mcp-publisher login github` and `mcp-publisher publish`.
 
 ## 中文说明
 
