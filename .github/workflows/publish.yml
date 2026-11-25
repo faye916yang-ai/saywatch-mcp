@@ -49,8 +49,24 @@ jobs:
             npm publish
           fi
 
+      - name: Wait until npm serves this version
+        run: |
+          V=$(node -p "require('./package.json').version")
+          for i in $(seq 1 30); do
+            npm view "saywatch-mcp@$V" version >/dev/null 2>&1 && { echo "npm has $V"; exit 0; }
+            echo "waiting for npm to show $V ($i/30)"; sleep 10
+          done
+          echo "npm still does not show $V after 5 minutes"; exit 1
+
       - name: Publish to the MCP Registry
         run: |
+          V=$(node -p "require('./server.json').version")
+          NAME=$(node -p "require('./server.json').name")
+          HAS=$(curl -sf "https://registry.modelcontextprotocol.io/v0.1/servers?search=$NAME" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const s=JSON.parse(d).servers||[];console.log(s.some(x=>(x.server||x).name===process.argv[1]&&(x.server||x).version===process.argv[2])?'yes':'no')})" "$NAME" "$V")
+          if [ "$HAS" = "yes" ]; then
+            echo "Registry already has $NAME $V, skipping."
+            exit 0
+          fi
           curl -sL "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
           ./mcp-publisher login github-oidc
-          ./mcp-publisher publish || echo "Registry publish failed or version already exists; check the log."
+          ./mcp-publisher publish
