@@ -14,7 +14,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 const SUPPORTED_PROTOCOLS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 const DEFAULT_DIR = join(homedir(), "Library/Mobile Documents/com~apple~CloudDocs/SayWatch");
 

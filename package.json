@@ -1,7 +1,7 @@
 {
   "name": "saywatch-mcp",
   "mcpName": "io.github.faye916yang-ai/saywatch-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "MCP server that lets Claude Code, Cursor and other AI tools search your SayWatch Apple Watch voice recordings (read-only, local files).",
   "type": "module",
   "bin": {
