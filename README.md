@@ -1,5 +1,7 @@
 # saywatch-mcp
 
+[![faye916yang-ai/saywatch-mcp MCP server](https://glama.ai/mcp/servers/faye916yang-ai/saywatch-mcp/badges/score.svg)](https://glama.ai/mcp/servers/faye916yang-ai/saywatch-mcp)
+
 Let Claude Code, Cursor, Claude desktop and other MCP clients search and read what you recorded on your Apple Watch with the SayWatch app.
 
 Read-only, local files only, no network access, zero dependencies (Node.js 18+).
